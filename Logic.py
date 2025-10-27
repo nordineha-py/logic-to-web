@@ -4,6 +4,7 @@ from datetime import datetime
 app = FastAPI()
 
 def to_8bit_binary(n, bits=8):
+    """Convert a number to an 8-character binary string (0s and 1s)."""
     return format(n % (2**bits), f"0{bits}b")
 
 @app.get("/time_hour")
@@ -24,8 +25,10 @@ def time_second():
 @app.get("/time_hms")
 def time_hms():
     now = datetime.now()
-    # compress HHMMSS into 8 bits (example: HH % 4, MM % 4, SS % 4)
-    h = now.hour % 4
-    m = now.minute % 4
-    s = now.second % 4
-    return format(h, "02b") + format(m, "03b") + format(s, "03b")
+    # Compress HH, MM, SS into 8 bits:
+    # 2 bits for hours % 4, 3 bits for minutes % 8, 3 bits for seconds % 8
+    h = format(now.hour % 4, "02b")
+    m = format(now.minute % 8, "03b")
+    s = format(now.second % 8, "03b")
+    return h + m + s  # always 8 chars
+
