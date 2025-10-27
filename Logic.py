@@ -1,17 +1,9 @@
-from fastapi import FastAPI, Form
+from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
 
 app = FastAPI()
 
-stored_value = "00000000"
-
 @app.post("/transmit")
-async def receive(value: str = Form(...)):
-    global stored_value
-    stored_value = value
-    print(f"Received from Build Logic: {stored_value}")
-    return PlainTextResponse(stored_value)
-
-@app.get("/receive")
-async def send():
-    return PlainTextResponse(stored_value)
+def transmit():
+    # Always return exactly the 8-character pattern
+    return PlainTextResponse("00000000")
