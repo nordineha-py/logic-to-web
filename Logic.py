@@ -6,4 +6,4 @@ app = FastAPI()
 @app.post("/transmit")
 def transmit():
     # Always return exactly the 8-character pattern
-    return PlainTextResponse("00000000")
+    return 10000001
