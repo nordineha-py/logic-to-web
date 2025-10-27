@@ -1,9 +1,19 @@
 from fastapi import FastAPI
-from fastapi.responses import PlainTextResponse
+from datetime import datetime
 
 app = FastAPI()
 
+@app.get("/")
+def root():
+    return "API Live"
+
 @app.post("/transmit")
 def transmit():
-    # Always return exactly the 8-character pattern
-    return 10000001
+    return "00000000"
+
+@app.get("/time")
+def current_time():
+    now = datetime.now()
+    # HHMMSS00 format
+    time_str = now.strftime("%H%M%S") + "00"
+    return time_str
