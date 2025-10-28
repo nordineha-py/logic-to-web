@@ -40,7 +40,4 @@ def minute_two():
 @app.get('/test')
 def test():
     return '00000001'
-@app.get('/wtest')
-def wtest():
-    return 00000001
     
