@@ -36,4 +36,9 @@ def minute_two():
     now = datetime.now()
     _, ones = split_digits(now.minute)
     return to_8bit_binary(ones)
- 
+ @app.get('/test')
+def test():
+    return '00000001'
+@app.get('/wtest')
+def wtest():
+    return 00000001
