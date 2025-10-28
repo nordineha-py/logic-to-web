@@ -3,29 +3,37 @@ from datetime import datetime
 
 app = FastAPI()
 
-def to_8bit_binary(n, bits=8):
-    return format(n % (2**bits), f"0{bits}b")
+def to_8bit_binary(n):
+    """Convert number to 8-character binary string."""
+    return format(n % 256, "08b")  # keep it as string!
 
-@app.get("/time_hour")
-def time_hour():
+def split_digits(value):
+    """Split a two-digit number into tens and ones."""
+    tens = value // 10
+    ones = value % 10
+    return tens, ones
+
+@app.get("/hour_one")
+def hour_one():
     now = datetime.now()
-    return to_8bit_binary(now.hour)
+    tens, _ = split_digits(now.hour)
+    return to_8bit_binary(tens)
 
-@app.get("/time_minute")
-def time_minute():
+@app.get("/hour_two")
+def hour_two():
     now = datetime.now()
-    return to_8bit_binary(now.minute)
+    _, ones = split_digits(now.hour)
+    return to_8bit_binary(ones)
 
-@app.get("/time_second")
-def time_second():
+@app.get("/minute_one")
+def minute_one():
     now = datetime.now()
-    return to_8bit_binary(now.second)
+    tens, _ = split_digits(now.minute)
+    return to_8bit_binary(tens)
 
-@app.get("/time_hms")
-def time_hms():
+@app.get("/minute_two")
+def minute_two():
     now = datetime.now()
-    h = format(now.hour % 4, "02b")
-    m = format(now.minute % 8, "03b")
-    s = format(now.second % 8, "03b")
-    return h + m + s  # always 8 chars
-
+    _, ones = split_digits(now.minute)
+    return to_8bit_binary(ones)
+ 
