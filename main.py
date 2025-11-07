@@ -24,4 +24,4 @@ async def test_text(request: Request):
 async def test_plaintext(request: Request):
     await request.body()
     # Explicit PlainTextResponse object returned
-    return PlainTextResponse("10000000")
+    return PlainTextResponse("01000000")
