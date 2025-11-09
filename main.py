@@ -1,69 +1,63 @@
 from fastapi import FastAPI, Request
-from datetime import datetime
-from typing import Tuple
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
+# Store current values
+current_values = {"A": 0, "B": 0, "op": "+"}
+
 def to_8bit_binary(n: int) -> str:
-    """Return an 8-character binary string for integer n (0-255)."""
-    return format(n % 256, "08b")
+    """Convert number to 8-bit binary string, clamp 0-255"""
+    return format(max(0, min(255, n)), "08b")
 
-def split_digits(value: int) -> Tuple[int, int]:
-    """Split a two-digit number into (tens, ones)."""
-    return value // 10, value % 10
+# POST /A - set A
+@app.post("/A")
+async def set_A(request: Request):
+    data = (await request.body()).decode().strip()
+    try:
+        current_values["A"] = int(data, 2)
+    except ValueError:
+        current_values["A"] = 0
+    return {"value": to_8bit_binary(current_values["A"])}
 
-# Optional root so you can visit in browser (GET) and see server is up
-@app.get("/")
-def root():
-    now = datetime.now().strftime("%H:%M:%S")
-    return {"value": f"API Live - {now}"}
+# POST /operation - set operation
+@app.post("/operation")
+async def set_operation(request: Request):
+    data = (await request.body()).decode().strip()
+    mapping = {
+        "00000001": "+",
+        "00000010": "-",
+        "00000100": "*",
+        "00001000": "/"
+    }
+    current_values["op"] = mapping.get(data, "+")
+    return {"value": data}  # Echo back the operation signal
 
-# All endpoints accept POST (Build Logic sends POSTs)
-@app.post("/hour_one")
-async def hour_one(request: Request):
-    await request.body()  # consume POST body (ignored)
-    tens, _ = split_digits(datetime.now().hour)
-    return {"value": to_8bit_binary(tens)}
+# POST /B - set B and calculate result
+@app.post("/B")
+async def set_B(request: Request):
+    data = (await request.body()).decode().strip()
+    try:
+        current_values["B"] = int(data, 2)
+    except ValueError:
+        current_values["B"] = 0
 
-@app.post("/hour_two")
-async def hour_two(request: Request):
-    await request.body()
-    _, ones = split_digits(datetime.now().hour)
-    return {"value": to_8bit_binary(ones)}
+    a = current_values["A"]
+    b = current_values["B"]
+    op = current_values["op"]
 
-@app.post("/minute_one")
-async def minute_one(request: Request):
-    await request.body()
-    tens, _ = split_digits(datetime.now().minute)
-    return {"value": to_8bit_binary(tens)}
+    try:
+        if op == "+":
+            result = a + b
+        elif op == "-":
+            result = a - b
+        elif op == "*":
+            result = a * b
+        elif op == "/":
+            result = a // b if b != 0 else 0
+        else:
+            result = 0
+    except:
+        result = 0
 
-@app.post("/minute_two")
-async def minute_two(request: Request):
-    await request.body()
-    _, ones = split_digits(datetime.now().minute)
-    return {"value": to_8bit_binary(ones)}
-
-@app.post("/second_one")
-async def second_one(request: Request):
-    await request.body()
-    tens, _ = split_digits(datetime.now().second)
-    return {"value": to_8bit_binary(tens)}
-
-@app.post("/second_two")
-async def second_two(request: Request):
-    await request.body()
-    _, ones = split_digits(datetime.now().second)
-    return {"value": to_8bit_binary(ones)}
-
-@app.post("/time_hms")
-async def time_hms(request: Request):
-    """
-    Compressed 8-bit pattern: 2 bits hours%4 | 3 bits minutes%8 | 3 bits seconds%8
-    (always returns 8 chars)
-    """
-    await request.body()
-    now = datetime.now()
-    h = format(now.hour % 4, "02b")
-    m = format(now.minute % 8, "03b")
-    s = format(now.second % 8, "03b")
-    return {"value": h + m + s}
+    return {"value": to_8bit_binary(result)}
