@@ -25,3 +25,6 @@ async def test_plaintext(request: Request):
     await request.body()
     # Explicit PlainTextResponse object returned
     return PlainTextResponse("01000000")
+async def test_json(request: Request):
+    await request.body()
+    return {"value":"00000100"}
