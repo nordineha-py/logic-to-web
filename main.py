@@ -1,63 +1,47 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI
+from datetime import datetime
 
 app = FastAPI()
 
-# Store current values
-current_values = {"A": 0, "B": 0, "op": "+"}
+def to_8bit_binary(n):
+    return format(n % 256, "08b")
 
-def to_8bit_binary(n: int) -> str:
-    """Convert number to 8-bit binary string, clamp 0-255"""
-    return format(max(0, min(255, n)), "08b")
+def split_digits(value):
+    return value // 10, value % 10
 
-# POST /A - set A
-@app.post("/A")
-async def set_A(request: Request):
-    data = (await request.body()).decode().strip()
-    try:
-        current_values["A"] = int(data, 2)
-    except ValueError:
-        current_values["A"] = 0
-    return {"value": to_8bit_binary(current_values["A"])}
+@app.get("/hour_tens")
+def hour_tens():
+    now = datetime.now()
+    tens, _ = split_digits(now.hour)
+    return {"value": to_8bit_binary(tens)}
 
-# POST /operation - set operation
-@app.post("/operation")
-async def set_operation(request: Request):
-    data = (await request.body()).decode().strip()
-    mapping = {
-        "00000001": "+",
-        "00000010": "-",
-        "00000100": "*",
-        "00001000": "/"
-    }
-    current_values["op"] = mapping.get(data, "+")
-    return {"value": data}  # Echo back the operation signal
+@app.get("/hour_ones")
+def hour_ones():
+    now = datetime.now()
+    _, ones = split_digits(now.hour)
+    return {"value": to_8bit_binary(ones)}
 
-# POST /B - set B and calculate result
-@app.post("/B")
-async def set_B(request: Request):
-    data = (await request.body()).decode().strip()
-    try:
-        current_values["B"] = int(data, 2)
-    except ValueError:
-        current_values["B"] = 0
+@app.get("/minute_tens")
+def minute_tens():
+    now = datetime.now()
+    tens, _ = split_digits(now.minute)
+    return {"value": to_8bit_binary(tens)}
 
-    a = current_values["A"]
-    b = current_values["B"]
-    op = current_values["op"]
+@app.get("/minute_ones")
+def minute_ones():
+    now = datetime.now()
+    _, ones = split_digits(now.minute)
+    return {"value": to_8bit_binary(ones)}
 
-    try:
-        if op == "+":
-            result = a + b
-        elif op == "-":
-            result = a - b
-        elif op == "*":
-            result = a * b
-        elif op == "/":
-            result = a // b if b != 0 else 0
-        else:
-            result = 0
-    except:
-        result = 0
+@app.get("/second_tens")
+def second_tens():
+    now = datetime.now()
+    tens, _ = split_digits(now.second)
+    return {"value": to_8bit_binary(tens)}
 
-    return {"value": to_8bit_binary(result)}
+@app.get("/second_ones")
+def second_ones():
+    now = datetime.now()
+    _, ones = split_digits(now.second)
+    return {"value": to_8bit_binary(ones)}
+
